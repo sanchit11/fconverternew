@@ -1,0 +1,44 @@
+# Node.js with webpack
+# Build a Node.js project using the webpack CLI.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+- task: Npm@1
+  displayName: 'Install npm dependencies'
+  inputs:
+    workingDir: '$(System.DefaultWorkingDirectory)'
+    verbose: false
+
+- task: Npm@1
+  displayName: 'npm run build'
+  inputs:
+    command: custom
+    workingDir: '$(System.DefaultWorkingDirectory)'
+    verbose: false
+    customCommand: 'run build --if-present'
+
+
+    
+- powershell: |
+   # Write your PowerShell commands here.
+   
+   Write-Host "Hello World"
+   zip -r $(Build.ArtifactStagingDirectory)/fhirconverter.zip ./ -x *.git* */node_modules/**\*
+     
+  displayName: 'PowerShell Script'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
